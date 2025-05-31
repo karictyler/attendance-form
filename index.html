@@ -52,7 +52,10 @@
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify(data)
+          body: JSON.stringify({name: name,
+    email: email,
+    latitude: lat,
+    longitude: lon}),
         })
         .then(() => {
           console.log("Fetch sent successfully.");

@@ -1,1 +1,65 @@
+<form id="attendanceForm">
+  <label for="name">Full Name</label>
+  <input type="text" id="name" name="name" required />
 
+  <label for="email">Email Address</label>
+  <input type="email" id="email" name="email" required />
+
+  <input type="hidden" id="latitude" name="latitude" />
+  <input type="hidden" id="longitude" name="longitude" />
+
+  <button type="submit">Submit Attendance</button>
+</form>
+
+<p id="status"></p>
+
+<script>
+  const statusEl = document.getElementById('status');
+
+  function setLocation() {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        document.getElementById('latitude').value = position.coords.latitude;
+        document.getElementById('longitude').value = position.coords.longitude;
+      }, function(error) {
+        statusEl.textContent = 'Location access denied or unavailable.';
+      });
+    } else {
+      statusEl.textContent = 'Geolocation not supported.';
+    }
+  }
+
+  window.onload = setLocation;
+
+  document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const data = {
+      name: document.getElementById('name').value,
+      email: document.getElementById('email').value,
+      latitude: document.getElementById('latitude').value,
+      longitude: document.getElementById('longitude').value
+    };
+
+    fetch(https://script.google.com/macros/s/AKfycbzPP9786BN1ZuKiwL6YHjkOQhindO3z_IWEg8Cq84jMxR8RS2x7xVd5wNFTYRc0mKzXcg/exec, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.result === 'success') {
+        statusEl.textContent = 'Attendance submitted successfully!';
+        this.reset();
+        setLocation(); // Reset location inputs
+      } else {
+        statusEl.textContent = 'Submission failed. Please try again.';
+      }
+    })
+    .catch(() => {
+      statusEl.textContent = 'Error connecting to server.';
+    });
+  });
+</script>

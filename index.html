@@ -1,76 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Attendance Form</title>
-  <meta charset="UTF-8">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      max-width: 400px;
-      margin: auto;
-    }
-    input, button {
-      width: 100%;
-      margin-top: 1rem;
-      padding: 0.5rem;
-      font-size: 1rem;
-    }
-    #message {
-      margin-top: 1rem;
-      font-weight: bold;
-      color: green;
-    }
-  </style>
 </head>
 <body>
-  <h2>Attendance Check-In</h2>
+  <h1>Attendance Check-In</h1>
+
   <form id="attendanceForm">
-    <input type="text" id="name" name="name" placeholder="Your name" required />
-    <input type="email" id="email" name="email" placeholder="Your email" required />
+    <label>Name: <input type="text" name="name" required /></label><br/><br/>
+    <label>Email: <input type="email" name="email" required /></label><br/><br/>
+    <input type="hidden" name="latitude" />
+    <input type="hidden" name="longitude" />
     <button type="submit">Submit</button>
   </form>
-  <div id="message"></div>
+
+  <div id="message" style="margin-top: 1rem; font-weight: bold;"></div>
 
   <script>
-    document.getElementById("attendanceForm").addEventListener("submit", function(e) {
-      e.preventDefault();
+    console.log("Script loaded");
 
-      const name = document.getElementById("name").value;
-      const email = document.getElementById("email").value;
-      const messageEl = document.getElementById("message");
+    const form = document.getElementById("attendanceForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      document.getElementById("message").innerText = "Submitting...";
 
       if (!navigator.geolocation) {
-        messageEl.textContent = "Geolocation is not supported by your browser.";
+        document.getElementById("message").innerText = "Geolocation not supported.";
         return;
       }
 
-      navigator.geolocation.getCurrentPosition(function(position) {
+      navigator.geolocation.getCurrentPosition((position) => {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
 
-    console.log("Submitting data:", data);
+        const formData = new FormData(form);
+        const data = {
+          name: formData.get("name"),
+          email: formData.get("email"),
+          latitude,
+          longitude
+        };
 
-fetch("https://script.google.com/macros/s/AKfycbwI6o8ZPisOpFOdsz-2BV1nUcfGqayk902l6eap3ctKXFv1Y4fnPT9QamtXoOkJr3xaOA/exec", {
-  method: "POST",
-  mode: "no-cors", // Required for Google Apps Script
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(data)
-})
-.then(() => {
-  console.log("Fetch sent successfully.");
-  document.getElementById("message").innerText = "Submitted!";
-})
-.catch(error => {
-  console.error("Error during fetch:", error);
-  document.getElementById("message").innerText = "Error submitting form.";
-});
+        console.log("Submitting data:", data);
 
+        fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec", {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        })
+        .then(() => {
+          console.log("Fetch sent successfully.");
+          document.getElementById("message").innerText = "Submitted!";
+          form.reset();
+        })
+        .catch((error) => {
+          console.error("Error during fetch:", error);
+          document.getElementById("message").innerText = "Error submitting form.";
+        });
 
-      }, function(error) {
-        messageEl.textContent = "Geolocation error: " + error.message;
+      }, (error) => {
+        console.error("Geolocation error:", error);
+        document.getElementById("message").innerText = "Location access denied.";
       });
     });
   </script>

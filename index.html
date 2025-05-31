@@ -49,31 +49,25 @@
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
 
-        fetch("https://script.google.com/macros/s/AKfycbwbRiPB3AeQ2rvSvTf7loE27mLRkcOQT034e1h0DUr5uJQ3p47KAs4Www5x6JWrygJRwg/exec", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            name: name,
-            email: email,
-            latitude: latitude,
-            longitude: longitude
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.result === "success") {
-            messageEl.textContent = "Check-in successful!";
-            document.getElementById("attendanceForm").reset();
-          } else {
-            messageEl.textContent = "Submission failed. Try again.";
-          }
-        })
-        .catch(error => {
-          console.error("Error:", error);
-          messageEl.textContent = "Error connecting to server.";
-        });
+    console.log("Submitting data:", data);
+
+fetch("https://script.google.com/macros/s/AKfycbwI6o8ZPisOpFOdsz-2BV1nUcfGqayk902l6eap3ctKXFv1Y4fnPT9QamtXoOkJr3xaOA/exec", {
+  method: "POST",
+  mode: "no-cors", // Required for Google Apps Script
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(data)
+})
+.then(() => {
+  console.log("Fetch sent successfully.");
+  document.getElementById("message").innerText = "Submitted!";
+})
+.catch(error => {
+  console.error("Error during fetch:", error);
+  document.getElementById("message").innerText = "Error submitting form.";
+});
+
 
       }, function(error) {
         messageEl.textContent = "Geolocation error: " + error.message;

@@ -1,65 +1,84 @@
-<form id="attendanceForm">
-  <label for="name">Full Name</label>
-  <input type="text" id="name" name="name" required />
-
-  <label for="email">Email Address</label>
-  <input type="email" id="email" name="email" required />
-
-  <input type="hidden" id="latitude" name="latitude" />
-  <input type="hidden" id="longitude" name="longitude" />
-
-  <button type="submit">Submit Attendance</button>
-</form>
-
-<p id="status"></p>
-
-<script>
-  const statusEl = document.getElementById('status');
-
-  function setLocation() {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        document.getElementById('latitude').value = position.coords.latitude;
-        document.getElementById('longitude').value = position.coords.longitude;
-      }, function(error) {
-        statusEl.textContent = 'Location access denied or unavailable.';
-      });
-    } else {
-      statusEl.textContent = 'Geolocation not supported.';
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Attendance Form</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      max-width: 400px;
+      margin: auto;
     }
-  }
+    input, button {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    #message {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h2>Attendance Check-In</h2>
+  <form id="attendanceForm">
+    <input type="text" id="name" name="name" placeholder="Your name" required />
+    <input type="email" id="email" name="email" placeholder="Your email" required />
+    <button type="submit">Submit</button>
+  </form>
+  <div id="message"></div>
 
-  window.onload = setLocation;
+  <script>
+    document.getElementById("attendanceForm").addEventListener("submit", function(e) {
+      e.preventDefault();
 
-  document.getElementById('attendanceForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const messageEl = document.getElementById("message");
 
-    const data = {
-      name: document.getElementById('name').value,
-      email: document.getElementById('email').value,
-      latitude: document.getElementById('latitude').value,
-      longitude: document.getElementById('longitude').value
-    };
-
-    fetch('https://script.google.com/macros/s/AKfycbyDfZgum5NSX38xSKCDv2V0I0zljotKPBLYK9vIPML6IdZ548jRxdhNhJeJnJkz94Kwhw/exec', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'Content-Type': 'application/json'
+      if (!navigator.geolocation) {
+        messageEl.textContent = "Geolocation is not supported by your browser.";
+        return;
       }
-    })
-    .then(response => response.json())
-    .then(result => {
-      if (result.result === 'success') {
-        statusEl.textContent = 'Attendance submitted successfully!';
-        this.reset();
-        setLocation(); // Reset location inputs
-      } else {
-        statusEl.textContent = 'Submission failed. Please try again.';
-      }
-    })
-    .catch(() => {
-      statusEl.textContent = 'Error connecting to server.';
+
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        fetch("https://script.google.com/macros/s/AKfycbyDfZgum5NSX38xSKCDv2V0I0zljotKPBLYK9vIPML6IdZ548jRxdhNhJeJnJkz94Kwhw/exec", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: name,
+            email: email,
+            latitude: latitude,
+            longitude: longitude
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.result === "success") {
+            messageEl.textContent = "Check-in successful!";
+            document.getElementById("attendanceForm").reset();
+          } else {
+            messageEl.textContent = "Submission failed. Try again.";
+          }
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          messageEl.textContent = "Error connecting to server.";
+        });
+
+      }, function(error) {
+        messageEl.textContent = "Geolocation error: " + error.message;
+      });
     });
-  });
-</script>
+  </script>
+</body>
+</html>
